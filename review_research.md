@@ -1,0 +1,12 @@
+- https://www.sciencedirect.com/science/article/pii/S095058499700030X
+- https://ieeexplore.ieee.org/document/922713/
+- https://www.researchgate.net/publication/220277872_Perspective-Based_Reading_A_Replicated_Experiment_Focused_on_Individual_Reviewer_Effectiveness
+- https://arxiv.org/abs/2312.13010
+- https://aclanthology.org/2024.emnlp-main.632/
+- https://openai.com/index/finding-gpt4s-mistakes-with-gpt-4/
+- https://proceedings.mlr.press/v235/smit24a.html
+- https://doi.org/10.1145/3712003
+- https://arxiv.org/abs/2512.21352
+- https://alignment.openai.com/scaling-code-verification/
+- https://arxiv.org/abs/2604.19049
+
