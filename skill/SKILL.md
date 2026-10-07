@@ -50,7 +50,7 @@ on the head commit that fail or are pending, with their names and links, and not
 Every tree has its own build directory: `<run>/target/head` and `<run>/target/base`, and `<run>/<reviewer>/target` for
 a verifier's worktree. Never let two trees share one, or their binaries overwrite each other.
 
-Build and test with the commands the gate found, with the same flags as CI. Any other flags rebuild everything.
+Build and test with the commands the gate found, with the same flags as CI, so the results match CI's.
 
 Build `head/` and `base/`, including the tests. If a build fails, tell the user and stop. Record in `context.md` the
 exact build and test commands with their environment for each tree, and the absolute paths to the head and base
@@ -68,9 +68,10 @@ reviewer, in parallel, with this message:
 > `<reviewer file>`. Read `<run>/context.md` first. Your shell starts in the user's own checkout, which is not this PR:
 > work only under `<run>`, with absolute paths or `cd` in every command. `head/` and `base/` are shared and read-only:
 > read code there, but never edit, build, run or check out anything. Report only issues this diff introduces, and only
-> those you can fix. For each, give file:line, the claim, why it breaks your reviewer's rules, and the simplest concrete
-> fix as the code or text to write. Do not say how to check the claim. You must write them with
-> `cat > <run>/<reviewer>/findings.md <<'EOF'`. Always write that file, with `None.` if you found nothing.
+> those you can fix. For each, give file:line, or the commit SHA for a finding about a commit, the claim, why it
+> breaks your reviewer's rules, and the simplest concrete fix as the code or text to write. Do not say how to check the
+> claim. You must write them with `cat > <run>/<reviewer>/findings.md <<'EOF'`. Always write that file, with `None.` if
+> you found nothing.
 
 ## Verify
 
@@ -80,10 +81,11 @@ As each reviewer with findings finishes, start a new agent with this message:
 > `<reviewer file>`. Read `<run>/context.md` first. Your shell starts in the user's own checkout, which is not this PR:
 > work only under `<run>`, with absolute paths or `cd` in every command. Design and run your own check of each claim.
 > Then apply its fix alone to a clean head in your worktree, and rerun the check. A finding survives only if its fix
-> resolves it without breaking any rule in `<reviewer file>` or any test. If a simpler fix also does, use that instead.
-> Judge a fix that changes only text by reading it. Save each tested fix with `git diff --no-ext-diff`, which bypasses
-> any configured diff tool, as `<run>/<reviewer>/fix-<n>.diff`. `head/` and `base/` are already built: run their
-> binaries and existing tests with exactly the commands in `context.md`, and never edit them. Run tests that write into the source tree, such as snapshot tests, in your own worktree instead. To change
+> resolves it without breaking any rule in `<reviewer file>` or the repo rules, or any test. If a simpler fix also does,
+> use that instead. Judge a fix that changes only text by reading it. Save each tested fix with
+> `git diff --no-ext-diff`, which bypasses any configured diff tool, as `<run>/<reviewer>/fix-<n>.diff`. `head/` and
+> `base/` are already built: run their binaries and existing tests with exactly the commands in `context.md`, and never
+> edit them. Run tests that write into the source tree, such as snapshot tests, in your own worktree instead. To change
 > code, such as adding a scratch test, create your own worktree at `<run>/<reviewer>/verify-worktree/`, from head unless
 > the check needs base, with its own build directory at `<run>/<reviewer>/target`. Delete that build directory as soon
 > as you are done, with `rm -rf` on its literal absolute path. You must write the findings that survive, each with its
@@ -118,11 +120,11 @@ numbers.
 
 Post only after the user approves, as one submitted GitHub review (never pending) with `commit_id` set to the reviewed
 SHA, where every comment is its own thread at its file:line. If the PR head has moved since, or a CI check that was
-pending has failed, tell the user before posting. Use a file-level comment (`subject_type: file`) when the line is
-outside the diff. GitHub rejects the whole review if a comment is on a file outside the diff, so anchor such a finding
-at the changed line that causes it (e.g. the new flag that needs docs), and put it in the review body only if none fits.
-Keep the review body to a short summary. Submit as `REQUEST_CHANGES`; on the user's own PR, where GitHub forbids that,
-submit as `COMMENT`. With no comments to post, ask the user whether to approve; on the user's own PR, post nothing.
+pending has failed, tell the user before posting. GitHub rejects the whole review if a comment is on a line outside
+the diff, so anchor such a finding at the changed line that causes it (e.g. the new flag that needs docs). Put a
+finding no changed line causes, such as one about a commit, in the review body, written as in `review.md`, after a
+short summary. Submit as `REQUEST_CHANGES`; on the user's own PR, where GitHub forbids that, submit as `COMMENT`. With
+no comments to post, ask the user whether to approve; on the user's own PR, post nothing.
 Record each posted comment's ID, its finding and its reviewer directory in `posted.md`, so a later follow-up can go from
 a thread back to its evidence.
 
