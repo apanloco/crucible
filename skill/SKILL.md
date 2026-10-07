@@ -22,12 +22,14 @@ user what is missing and stop: that is a repo problem to surface, not to work ar
 
 ## Run directory
 
-Each run gets its own directory, `~/.cache/crucible/<repo>-<n>-<YYYYMMDD-HHMM>/`. Set it up:
+Each run gets a run ID: 7 random hex characters, from
+`head -c4 /dev/urandom | od -An -tx1 | tr -d ' \n' | cut -c1-7`. Draw again if `~/.cache/crucible/*-<run id>` exists.
+The run's directory is `~/.cache/crucible/<owner>-<repo>-<n>-<run id>/`. Set it up:
 
 1. Work in the current repo if it is the PR's repo; otherwise clone it into `<run>/clone`.
 2. Fetch the base branch.
-3. Fetch the PR into a private ref named after the run, never into a branch:
-   `git fetch origin pull/<n>/head:refs/crucible/<run dir name>`.
+3. Fetch the PR into a private ref named after the run ID, never into a branch:
+   `git fetch origin pull/<n>/head:refs/crucible/<run id>`.
 4. Check out the PR head and its merge base with the base branch as detached git worktrees, `<run>/head/` and
    `<run>/base/`.
 
@@ -40,10 +42,11 @@ Keep `sessions.md` in the run directory: the path to your own transcript, and, a
 
 ## Context
 
-Write `context.md` in the run directory: the PR title, description and linked issue, the reviewed head and merge-base
-commit SHAs, every commit from merge base to head with its SHA and full message, the paths to `head/` and `base/`, the
-diff (`git diff --no-ext-diff <base ref>...<head ref>`) saved as `pr.diff`, where the repo rules are, and the CI checks
-on the head commit that fail or are pending, with their names and links, and nothing about passing ones.
+Write `context.md` in the run directory: the run ID and start time, the PR title, description and linked issue, the
+reviewed head and merge-base commit SHAs, every commit from merge base to head with its SHA and full message, the paths
+to `head/` and `base/`, the diff (`git diff --no-ext-diff <base ref>...<head ref>`) saved as `pr.diff`, where the repo
+rules are, and the CI checks on the head commit that fail or are pending, with their names and links, and nothing about
+passing ones.
 
 ## Builds
 
@@ -99,7 +102,7 @@ When all verifiers are done, check that every reviewer has a `findings.md` and e
 Then read every `*/verified.md` yourself and write `review.md`. Several reviewers will often report the same problem in
 different words: merge findings with the same root cause into one, keeping the evidence from every reviewer. Every
 posted comment is a Blocker. Write each comment as the user would: a bold one-line claim, then mechanism, scenario,
-fix. End each comment with the line `*crucible · found by <reviewers>*`.
+fix. End each comment with the line `*crucible <run id> · found by <reviewers>*`.
 
 End `review.md` with a merge brief: a recommendation (merge, merge after fixes, or look yourself at named spots) with
 one sentence why, then the posted Blockers, CI state, what nobody verified (reviewers not applicable, checks not run),
@@ -131,5 +134,5 @@ a thread back to its evidence.
 ## Cleanup
 
 Whenever the run ends, including when it stops early: `git worktree remove --force` every worktree in the run, then
-`git worktree prune`, delete `refs/crucible/<run dir name>` and no other ref, and delete the build directories and
-`<run>/clone`, with `rm -rf` on literal absolute paths only, never on a variable. Keep the files.
+`git worktree prune`, delete `refs/crucible/<run id>` and no other ref, and delete the build directories and `<run>/clone`,
+with `rm -rf` on literal absolute paths only, never on a variable. Keep the files.
