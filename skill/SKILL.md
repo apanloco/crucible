@@ -92,7 +92,8 @@ start, also start one agent per unresolved crucible thread, in parallel, with th
 > - `open`: the author has not replied and nothing the finding is about changed.
 >
 > You must write the verdict, the evidence that settled it, and a reply of one or two sentences as the user would write
-> it, with `cat > <run>/threads/<comment id>.md <<'EOF'`.
+> it, with `cat > <run>/threads/<comment id>.md <<'EOF'`. Stop every background command you started before you write
+> it.
 
 ## Builds
 
@@ -127,7 +128,7 @@ agent per started reviewer, in parallel, with this message:
 > those you can fix. For each, give file:line, or the commit SHA for a finding about a commit, the claim, why it
 > breaks your reviewer's rules, and the simplest concrete fix as the code or text to write. Do not say how to check the
 > claim. You must write them with `cat > <run>/<reviewer>/findings.md <<'EOF'`. Always write that file, with `None.` if
-> you found nothing.
+> you found nothing. Stop every background command you started before you write it.
 
 ## Verify
 
@@ -146,18 +147,18 @@ As each reviewer with findings finishes, start a new agent with this message:
 > the check needs base, with its own build directory at `<run>/<reviewer>/target`. Delete that build directory as soon
 > as you are done, with `rm -rf` on its literal absolute path. You must write the findings that survive, each with its
 > fix and the evidence that settled it, with `cat > <run>/<reviewer>/verified.md <<'EOF'`. Always write that file, with
-> `None.` if nothing survives.
+> `None.` if nothing survives. Stop every background command you started before you write it.
 
 ## Triage
 
-When all verifiers are done, check that every reviewer has a `findings.md` and every reviewer with findings has a
-`verified.md`. Rerun a lane that is missing a file once; if it fails again, tell the user which reviewer is missing.
-On a resume, also check that every unresolved crucible thread has a `threads/<comment id>.md`, and rerun a missing one
-once. Then read every `*/verified.md` yourself and write `review.md`. Several reviewers will often report the same
-problem in different words: merge findings with the same root cause into one, keeping the evidence from every reviewer.
-Every posted comment is a Blocker. Write each comment as the user would: a bold one-line claim, then mechanism,
-scenario, fix. End each comment with the line `*crucible <run id> #<n> · found by <reviewers>*`, where `<n>` is the
-finding's number.
+When every agent has stopped, not only written its file, check that every reviewer has a `findings.md` and every
+reviewer with findings has a `verified.md`. Rerun a lane that is missing a file once; if it fails again, tell the user
+which reviewer is missing. On a resume, also check that every unresolved crucible thread has a
+`threads/<comment id>.md`, and rerun a missing one once. Then read every `*/verified.md` yourself and write
+`review.md`. Several reviewers will often report the same problem in different words: merge findings with the same root
+cause into one, keeping the evidence from every reviewer. Every posted comment is a Blocker. Write each comment as the
+user would: a bold one-line claim, then mechanism, scenario, fix. End each comment with the line
+`*crucible <run id> #<n> · found by <reviewers>*`, where `<n>` is the finding's number.
 
 On a resume, `review.md` starts with the threads: for each, its comment ID, previous finding, verdict, reply and
 action. The action follows the verdict:
@@ -204,6 +205,7 @@ a thread back to its evidence. On a resume, also record each thread's verdict, r
 
 ## Cleanup
 
-Whenever the run ends, including when it stops early: `git worktree remove --force` every worktree in the run, then
-`git worktree prune`, delete `refs/crucible/<run id>` and no other ref, and delete the build directories and `<run>/clone`,
-with `rm -rf` on literal absolute paths only, never on a variable. Keep the files.
+Whenever the run ends, including when it stops early, and only once every agent has stopped:
+`git worktree remove --force` every worktree in the run, then `git worktree prune`, delete `refs/crucible/<run id>` and
+no other ref, and delete the build directories and `<run>/clone`, with `rm -rf` on literal absolute paths only, never
+on a variable. Keep the files.
