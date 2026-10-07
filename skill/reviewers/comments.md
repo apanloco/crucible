@@ -12,5 +12,6 @@ Go through every comment the diff adds or changes, one sentence at a time. A sen
 - restates what a reader can see in the code: names, types, attributes or logic.
 - says what clearer code could say: a name, a constant or a type.
 - repeats another sentence in the same comment, or a doc the comment points to.
-- describes how the code got there instead of what it is.
+- describes how the code got there, or what it is not, such as a previous version or a rejected alternative, instead
+  of what it is.
 - points to a file. Nothing checks such links, so they break silently; references belong in doc comments, as links to code items.
