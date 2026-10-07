@@ -1,5 +1,6 @@
 ---
 enabled: true
+scope: commits
 start-only-if: the PR has more than one commit
 ---
 

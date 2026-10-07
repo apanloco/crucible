@@ -48,6 +48,52 @@ to `head/` and `base/`, the diff (`git diff --no-ext-diff <base ref>...<head ref
 rules are, and the CI checks on the head commit that fail or are pending, with their names and links, and nothing about
 passing ones.
 
+## Resume
+
+A run resumes the PR's newest crucible review, if there is one. Crucible marks what it posts with a footer: a review
+body ends with `*crucible <run id>*` or `*crucible <run id> · follows <previous run id>*`, a finding comment with
+`*crucible <run id> #<finding> · found by <reviewers>*`, and a thread reply with `*crucible <run id>*`. List the PR's
+reviews and review threads with `gh api graphql`. If no review body has a crucible footer, this is a full review: skip
+the rest of this section.
+
+Otherwise the newest crucible review gives the previous run ID and, as its `commit_id`, the previous head. The previous
+run's files are in `~/.cache/crucible/*-<previous run id>/`. If that directory is missing, tell the user which run ID
+was not found and stop. Fetch the previous head with
+`git fetch origin <sha>`; its merge base is `git merge-base <previous head> <base ref>`. Save the change since then as
+`delta.diff`: `git diff --no-ext-diff <previous head> <head>` if the merge base is unchanged, otherwise
+`git range-diff <previous merge base>..<previous head> <merge base>..<head>`, so a rebase onto the base branch does not
+count as change.
+
+Add to `context.md` the previous run ID, head and directory, the path to `delta.diff`, and every unresolved crucible
+thread: its comment ID, finding, location, full text and every reply. Add the known findings too: every finding in the
+previous run's `review.md`, posted or not, and the previous run's own known findings.
+
+On a resume, a reviewer with `scope: commits` in its front matter is judged on, and reviews, every commit from merge
+base to head as on a first run, and its message adds "Report none of the known findings in `context.md`". Every other
+reviewer is judged on `delta.diff` alone, and its message says "Report only issues `<run>/delta.diff` introduces, and
+none of the known findings in `context.md`" instead of "Report only issues this diff introduces". When the reviewers
+start, also start one agent per unresolved crucible thread, in parallel, with this message:
+
+> You settle one review thread on PR <n>, comment <comment id> in `<run>/context.md`. Read `<run>/context.md` first,
+> and the finding's evidence in `<previous run>/<reviewer>/`. Your shell starts in the user's own
+> checkout, which is not this PR: work only under `<run>`, with absolute paths or `cd` in every command. `head/` and
+> `base/` are already built: run their binaries and existing tests with exactly the commands in `context.md`, and never
+> edit them. To change code, create your own worktree at `<run>/threads/<comment id>/worktree/` from head, with its own
+> build directory at `<run>/threads/<comment id>/target`, and delete that build directory as soon as you are done, with
+> `rm -rf` on its literal absolute path.
+>
+> Give one verdict:
+>
+> - `fixed`: the finding's scenario no longer fails at head, and the fix is reasonable.
+> - `not fixed`: the author says it is fixed, or the code changed, but the scenario still fails or the fix is not
+>   reasonable.
+> - `accepted`: the author disagrees, every factual claim in their reply holds, and their reasoning is reasonable.
+> - `disputed`: the author disagrees, and a claim in their reply is false or their reasoning does not hold.
+> - `open`: the author has not replied and nothing the finding is about changed.
+>
+> You must write the verdict, the evidence that settled it, and a reply of one or two sentences as the user would write
+> it, with `cat > <run>/threads/<comment id>.md <<'EOF'`.
+
 ## Builds
 
 Every tree has its own build directory: `<run>/target/head` and `<run>/target/base`, and `<run>/<reviewer>/target` for
@@ -63,9 +109,16 @@ binaries.
 
 Every file in `reviewers/` next to this one with `enabled: true` in its front matter is a reviewer. A reviewer with
 `start-only-if` in its front matter starts only if the diff and its commit list, read alone and not with the PR
-description, clearly meet that condition; when in doubt, skip it. A reviewer without one always starts. Show the user a
-table with one row per reviewer, `Reviewer | Started | Reason`, and add it to `sessions.md`. Start one agent per started
-reviewer, in parallel, with this message:
+description, clearly meet that condition; when in doubt, skip it. A reviewer without one always starts.
+
+Before starting any reviewer, you must print this table in your reply to the user, and add it to `sessions.md`:
+
+| Reviewer | Started | Reason |
+| --- | --- | --- |
+| `<name>` | yes / no | the change in the diff that meets or misses its condition, or "always starts" |
+
+It has one row for every reviewer, started or not, so the user can see why each one runs or is skipped. Then start one
+agent per started reviewer, in parallel, with this message:
 
 > You are one of several reviewers working in parallel on PR <n>, each on a different area. Yours is described in
 > `<reviewer file>`. Read `<run>/context.md` first. Your shell starts in the user's own checkout, which is not this PR:
@@ -99,10 +152,20 @@ As each reviewer with findings finishes, start a new agent with this message:
 
 When all verifiers are done, check that every reviewer has a `findings.md` and every reviewer with findings has a
 `verified.md`. Rerun a lane that is missing a file once; if it fails again, tell the user which reviewer is missing.
-Then read every `*/verified.md` yourself and write `review.md`. Several reviewers will often report the same problem in
-different words: merge findings with the same root cause into one, keeping the evidence from every reviewer. Every
-posted comment is a Blocker. Write each comment as the user would: a bold one-line claim, then mechanism, scenario,
-fix. End each comment with the line `*crucible <run id> · found by <reviewers>*`.
+On a resume, also check that every unresolved crucible thread has a `threads/<comment id>.md`, and rerun a missing one
+once. Then read every `*/verified.md` yourself and write `review.md`. Several reviewers will often report the same
+problem in different words: merge findings with the same root cause into one, keeping the evidence from every reviewer.
+Every posted comment is a Blocker. Write each comment as the user would: a bold one-line claim, then mechanism,
+scenario, fix. End each comment with the line `*crucible <run id> #<n> · found by <reviewers>*`, where `<n>` is the
+finding's number.
+
+On a resume, `review.md` starts with the threads: for each, its comment ID, previous finding, verdict, reply and
+action. The action follows the verdict:
+
+- `fixed` or `accepted`: reply and resolve.
+- `not fixed`: reply with the evidence and keep it open.
+- `disputed`: ask the user whether to resolve it, or reply with the objection and keep it open.
+- `open`: nothing.
 
 End `review.md` with a merge brief: a recommendation (merge, merge after fixes, or look yourself at named spots) with
 one sentence why, then the posted Blockers, CI state, what nobody verified (reviewers not applicable, checks not run),
@@ -113,9 +176,11 @@ Clean up, then reply to the user with these unnumbered sections, in this order:
 - **PR:** its URL and title
 - **Run directory**
 - **Nothing is posted yet.**
+- **Threads:** on a resume, each thread with its location, previous finding, verdict and action.
 - **Will be posted as <event> on <short sha>:** each comment with its location, one-line claim and reviewers.
 - **Merge brief**
-- **Shall I post the findings?**
+- **Your call:** on a resume with `disputed` threads, each with the author's argument and the objection.
+- **Shall I post the findings?**, or on a resume **Shall I post the findings and settle the threads?**
 
 Write each section as a plain heading line, never as a list item, so the findings are top-level lists; the terminal
 renders nested numbered lists with letters. Number only the findings, 1, 2, 3, …, and refer to findings only by those
@@ -127,9 +192,15 @@ pending has failed, tell the user before posting. GitHub rejects the whole revie
 the diff, so anchor such a finding at the changed line that causes it (e.g. the new flag that needs docs). Put a
 finding no changed line causes, such as one about a commit, in the review body, written as in `review.md`, after a
 short summary. Submit as `REQUEST_CHANGES`; on the user's own PR, where GitHub forbids that, submit as `COMMENT`. With
-no comments to post, ask the user whether to approve; on the user's own PR, post nothing.
+no comments to post, ask the user whether to approve; on the user's own PR, post nothing. End every review body, an
+approval's too, with `*crucible <run id>*`, or on a resume with `*crucible <run id> · follows <previous run id>*`.
+On a resume, with the same approval and after posting the review, carry out each thread's action: post its reply with
+`gh api repos/<owner>/<repo>/pulls/<n>/comments/<comment id>/replies`, ending with `*crucible <run id>*`, then resolve
+it with the GraphQL `resolveReviewThread` mutation if its action says so. A thread that stays open still blocks, so
+submit as `REQUEST_CHANGES` even with no new comments, and ask about approving only when no thread stays open.
+
 Record each posted comment's ID, its finding and its reviewer directory in `posted.md`, so a later follow-up can go from
-a thread back to its evidence.
+a thread back to its evidence. On a resume, also record each thread's verdict, reply ID and whether it was resolved.
 
 ## Cleanup
 
