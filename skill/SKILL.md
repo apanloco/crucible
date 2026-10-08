@@ -161,8 +161,9 @@ As each reviewer with findings finishes, start a new agent with this message:
 > work only under `<run>`, with absolute paths or `cd` in every command. Check each claim in the cheapest way that
 > settles it. Judge a fix whose whole effect you can see in the diff by reading it, without running code. Apply any
 > other fix alone to a clean head in your worktree, rerun the check, and run the narrowest tests that cover the code it
-> changes. A finding survives only if its fix resolves it without breaking any rule in `<reviewer file>` or the repo
-> rules, or a test. If a simpler fix also does, use that instead. Save each fix with
+> changes. Run nothing else, such as linters, formatters, release builds or other test suites: CI runs them on whatever
+> the author pushes. A finding survives only if its fix resolves it without breaking any rule in `<reviewer file>` or
+> the repo rules, or a test. If a simpler fix also does, use that instead. Save each fix with
 > `git diff --no-ext-diff`, which bypasses any configured diff tool, as `<run>/<reviewer>/fix-<n>.diff`. `head/` and
 > `base/` are already built: run their binaries and existing tests with exactly the commands in `context.md`, and never
 > edit them. Run tests that write into the source tree, such as snapshot tests, in your own worktree instead. To change
