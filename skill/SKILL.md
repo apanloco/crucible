@@ -209,23 +209,21 @@ can judge in a minute. When `review.md` is written, start one agent with this me
 > `cat > <run>/risk.md <<'EOF'`. Stop every background command you started before you write it.
 
 The assessor judges only what the run established: the verified findings, the thread verdicts, CI, and what no
-reviewer covered. It takes each finding's reviewers from its footer in `review.md`, and gives it exactly one impact,
-the first that fits:
+reviewer covered. It takes each finding's reviewers from its footer in `review.md`, and gives each finding a risk:
+what merging it as it is can cost.
 
-- `failure`: a verified scenario where the code gives a wrong result, loses or leaks data, or crashes.
-- `latent`: no wrong result today, but the code makes one easy, such as an argument order nothing checks.
-- `rule`: it breaks a repo rule or convention, with no wrong result.
-- `docs`: a comment, doc or message is false or missing, and the code is right.
-- `cleanup`: the code is right, and the change makes it simpler, shorter or clearer.
+- `high`: merging can hurt users: a verified wrong result, crash, or lost or leaked data on a path real users reach,
+  including an opt-in path that a product they use turns on; a security or credential issue; or a change to a
+  persisted format, released API or CLI contract that a revert does not undo.
+- `low`: merging hurts no one now, but makes harm more likely or costs whoever works on the code next: a latent bug
+  such as an argument order nothing checks, a broken repo rule, a false or missing doc or message, or a wrong result
+  only on a path no user reaches.
+- `zero`: merging costs nothing but polish: the code is right, and the fix only makes it simpler or clearer.
 
-The merge risk says whether merging the PR as it is can hurt someone, and decides the review's event:
-
-- `high`: a `failure` on a path real users reach, including an opt-in path that a product they use turns on; a
-  security, credential or data-loss issue; a change to a persisted format, released API or CLI contract that a revert
-  does not undo; a failing CI check; or a thread that is `not fixed`, `disputed` or `resolved without change` whose
-  finding is one of these.
-- `low`: a runtime change and none of the above. A changed path no test covers stays `low`, and the rationale names it.
-- `zero`: no runtime change: only docs, comments, tests or formatting.
+The merge risk is the highest risk of any finding, and of any thread that is `not fixed`, `disputed` or
+`resolved without change`, so it says whether merging the PR as it is can hurt someone, and decides the review's event.
+A failing CI check makes it `high`. A runtime change with no finding is `low`, and a diff that changes no behaviour is
+`zero`. A changed path no test covers stays `low`, and the rationale names it.
 
 The rationale and each bullet under it are at most two sentences; the detail belongs in the findings' comments. The
 rationale names only the findings and facts that set the level. When the level rests on something the run could
@@ -247,27 +245,25 @@ it.
 
 **Findings of crucible <run id> on commit <short sha>:**
 
-| # | Impact | Finding | Reviewers |
+| # | Risk | Finding | Reviewers |
 | --- | --- | --- | --- |
-| <n> | <impact> | <what goes wrong, in at most 10 words> | <reviewers> |
+| <n> | <risk> | <what goes wrong, in at most 10 words> | <reviewers> |
 
-Impact, most to least serious: **failure** gives a wrong result · **latent** makes one easy · **rule** breaks a repo
-rule · **docs** has false or missing text · **cleanup** simplifies correct code
+Risk: **high** can hurt users if merged · **low** harms no one now but costs later · **zero** polish only
 ```
 
 The number connects a row to its inline comment, whose footer carries the run ID and the same number. The inline
 comment carries the location, so the table has none; a finding in the review body names what it is about,
 such as "Commit message: …".
 
-Findings are listed in the order of the impacts above, `failure`, `latent`, `rule`, `docs`, `cleanup`, and by number
-within an impact. On a resume, a second table follows:
+Findings are listed by risk, `high`, `low`, `zero`, and by number within a risk. On a resume, a second table follows:
 
 ```
 **Threads from crucible <previous run id>:**
 
 | Thread | Verdict | Author's reason | Action |
 | --- | --- | --- | --- |
-| Finding <n>: <what it was about, in at most 8 words> | <verdict> | <reason> | <resolve, keep open, ask, or none> |
+| Finding <n>: <what it was about, in at most 8 words> | <verdict> | <reason> | <resolve, keep open, or none> |
 ```
 
 The author's reason is their last reply on the thread, in at most 10 words, quoted when short; "no reply" when they
@@ -275,7 +271,7 @@ resolved or left it without writing anything, so a silent dismissal stands out; 
 finding that sets the level was resolved without a reason, the rationale says so.
 
 When the assessor has stopped, renumber the findings in `risk.md` and `review.md` 1, 2, 3, … in the table's order,
-including each comment's footer, start each finding with the line `**Finding <n> · Impact: <impact>**` above its
+including each comment's footer, start each finding with the line `**Finding <n> · Risk: <risk>**` above its
 claim, and put the review summary at the top of `review.md`. The same review summary goes at the top of the posted
 review body and in the reply to the user, so both read the same thing.
 
