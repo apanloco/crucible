@@ -248,29 +248,31 @@ it.
 
 **Findings of crucible <run id> on commit <short sha>:**
 
-| # | Risk | Finding | Reviewers |
-| --- | --- | --- | --- |
-| <n> | <risk> | <what goes wrong, in at most 10 words> | <reviewers> |
+| Finding | Reviewers |
+| --- | --- |
+| **<n> · <risk>** <what goes wrong, in at most 10 words> | <reviewers> |
 
 Risk: **high** can hurt users if merged · **low** harms no one now but costs later · **zero** polish only
 ```
 
-The number connects a row to its inline comment, whose footer carries the run ID and the same number. The inline
-comment carries the location, so the table has none; a finding in the review body names what it is about,
-such as "Commit message: …".
+Number and risk sit in the Finding cell, not columns of their own: GitHub squeezes narrow columns beside a long one
+until it breaks words. The number connects a row to its inline comment, whose footer carries the run ID and the same
+number. The inline comment carries the location, so the table has none; a finding in the review body names what it is
+about, such as "Commit message: …".
 
 Findings are listed by risk, `high`, `low`, `zero`, and by number within a risk. On a resume, a second table follows:
 
 ```
 **Threads from crucible <previous run id>:**
 
-| Thread | Verdict | Author's reason | Action |
-| --- | --- | --- | --- |
-| Finding <n>: <what it was about, in at most 8 words> | <verdict> | <reason> | <resolve, keep open, or none> |
+| Thread | Outcome |
+| --- | --- |
+| Finding <n>: <what it was about, in at most 8 words> | **<verdict>** · <resolve, keep open, or none> · author: <reason> |
 ```
 
-The author's reason is their last reply on the thread, in at most 10 words, quoted when short; "no reply" when they
-resolved or left it without writing anything, so a silent dismissal stands out; and "—" for a `fixed` thread. When a
+The author's reason is their last reply on the thread, in at most 10 words, quoted when short, or "no reply" when they
+resolved or left it without writing anything, so a silent dismissal stands out; a `fixed` thread leaves out the
+author part. When a
 finding that sets the level was resolved without a reason, the rationale says so.
 
 When the assessor has stopped, renumber the findings in `risk.md` and `review.md` 1, 2, 3, … in the table's order,
