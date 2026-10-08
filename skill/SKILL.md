@@ -289,9 +289,11 @@ one card per thread reply headed by the thread's previous run ID and number. Ren
 system's light or dark theme, and keep the page local: it holds the repo's code.
 
 Post one submitted GitHub review (never pending) with `commit_id` set to the reviewed SHA, where every comment is its
-own thread at its file:line. If the PR head moved during the run, post nothing and tell the user to resume. GitHub
-rejects the whole review if a comment is on a line outside the diff, so anchor such a finding at the changed line that
-causes it (e.g. the new flag that needs docs).
+own thread at its file:line. Before posting, check that the review holds every finding in `risk.md`: one comment for
+each finding on a code line, and the rest in the body; if one is missing, fix the review before posting it. If the PR
+head moved during the run, post nothing and tell the user to resume. GitHub rejects the whole review if a comment is on
+a line outside the diff, so anchor such a finding at the changed line that causes it (e.g. the new flag that needs
+docs).
 
 The review body opens with `*Posted automatically by crucible for <user>, who has not read it yet.*`, then the review
 summary. After it, under the heading `**Findings not on a code line:**`, come the findings no changed line causes, such
