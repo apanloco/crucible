@@ -248,17 +248,18 @@ it.
 
 **Findings of crucible <run id> on commit <short sha>:**
 
-| Finding | Reviewers |
-| --- | --- |
-| **<n> · <risk>** <what goes wrong, in at most 10 words> | <reviewers> |
+| Risk | Finding | Reviewers |
+| --- | --- | --- |
+| <risk mark> | **<n>** <what goes wrong, in at most 10 words> | <reviewers> |
 
-Risk: **high** can hurt users if merged · **low** harms no one now but costs later · **zero** polish only
+Risk: 🔴 **high** can hurt users if merged · 🟡 **low** harms no one now but costs later · ⚪ **zero** polish only
 ```
 
-Number and risk sit in the Finding cell, not columns of their own: GitHub squeezes narrow columns beside a long one
-until it breaks words. The number connects a row to its inline comment, whose footer carries the run ID and the same
-number. The inline comment carries the location, so the table has none; a finding in the review body names what it is
-about, such as "Commit message: …".
+The risk mark is 🔴 for `high`, 🟡 for `low` and ⚪ for `zero`, alone in its cell, and the number opens the Finding
+cell: GitHub squeezes narrow columns beside a long one until it breaks words, and a single emoji cannot break. The
+number connects a row to its inline comment, whose footer carries the run ID and the same number. The inline comment
+carries the location, so the table has none; a finding in the review body names what it is about, such as
+"Commit message: …".
 
 Findings are listed by risk, `high`, `low`, `zero`, and by number within a risk. On a resume, a second table follows:
 
@@ -276,7 +277,7 @@ author part. When a
 finding that sets the level was resolved without a reason, the rationale says so.
 
 When the assessor has stopped, renumber the findings in `risk.md` and `review.md` 1, 2, 3, … in the table's order,
-including each comment's footer, start each finding with the line `**Finding <n> · Risk: <risk>**` above its
+including each comment's footer, start each finding with the line `**Finding <n> · <risk mark> <risk>**` above its
 claim, and put the review summary at the top of `review.md`. The same review summary goes at the top of the posted
 review body and in the reply to the user, so both read the same thing.
 
