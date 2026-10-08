@@ -59,10 +59,10 @@ changed contract is used.
 
 A run resumes the PR's newest crucible review, if there is one. Crucible marks what it posts with a footer: a review
 body ends with `*crucible <run id>*` or `*crucible <run id> · follows crucible <previous run id>*`, a finding comment
-with `*crucible <run id> #<finding> · found by <reviewers>*`, and a thread reply with `*crucible <run id>*`. Older
-footers have 7-character run IDs and no "crucible" after "follows"; read them too. List the PR's reviews and review
-threads with `gh api graphql`. If no review body has a crucible footer, this is a full review: skip
-the rest of this section.
+with `*crucible <run id> finding <n> · found by <reviewers>*`, and a thread reply with `*crucible <run id>*`. Older
+footers have 7-character run IDs, `#<n>` for `finding <n>`, and no "crucible" after "follows"; read them too. List
+the PR's reviews and review threads with `gh api graphql`. If no review body has a crucible footer, this is a full
+review: skip the rest of this section.
 
 Otherwise the newest crucible review gives the previous run ID and, as its `commit_id`, the previous head. The previous
 run's files are in `~/.cache/crucible/*-<previous run id>/`. If that directory is missing, tell the user which run ID
@@ -170,10 +170,11 @@ reviewer with findings has a `verified.md`. Rerun a lane that is missing a file 
 which reviewer is missing. On a resume, also check that every unresolved crucible thread has a
 `threads/<comment id>.md`, and rerun a missing one once. Then read every `*/verified.md` yourself and write
 `review.md`. Several reviewers will often report the same problem in different words: merge findings with the same root
-cause into one, keeping the evidence from every reviewer. Write each comment as the
-user would: a bold one-line claim, then mechanism, scenario, fix. End each comment with the line
-`*crucible <run id> #<n> · found by <reviewers>*`, where `<n>` is the finding's number. Write a commit as the word
-"commit" and its plain SHA, never in backticks, so GitHub links it and no one takes it for a run ID.
+cause into one, keeping the evidence from every reviewer. Write each comment as the user would: a one-line claim,
+then mechanism, scenario, fix. End each comment with the line `*crucible <run id> finding <n> · found by <reviewers>*`,
+where `<n>` is the finding's number. Write a commit as the word "commit" and its plain SHA, never in backticks, so
+GitHub links it and no one takes it for a run ID. Never put `#` before a finding's number: GitHub links `#<n>` to issue
+or PR `<n>`. Write "finding <n>" instead.
 
 On a resume, `review.md` starts with the threads: for each, its comment ID, previous finding, verdict, reply and
 action. The action follows the verdict:
@@ -230,7 +231,7 @@ it.
 ```
 **Merge risk: <Level>**
 
-**Rationale:** <One sentence: the finding numbers or facts that set the level.>
+**Rationale:** <The findings, as "finding <n>", or facts that set the level.>
 
 **If this PR is merged as is:**
 - Who is affected: <the default path or an opt-in path, and who uses it>
@@ -242,6 +243,9 @@ it.
 | # | Impact | Finding | Reviewers |
 | --- | --- | --- | --- |
 | <n> | <impact> | <what goes wrong, in at most 10 words> | <reviewers> |
+
+Impact, most to least serious: **failure** gives a wrong result · **latent** makes one easy · **rule** breaks a repo
+rule · **docs** has false or missing text · **cleanup** simplifies correct code
 ```
 
 The number connects a row to its inline comment, whose footer carries the run ID and the same number. The inline
@@ -256,20 +260,21 @@ within an impact. On a resume, a second table follows:
 
 | Thread | Verdict | Action |
 | --- | --- | --- |
-| #<n>: <what it was about, in at most 8 words> | <verdict> | <resolve, keep open, ask, or none> |
+| Finding <n>: <what it was about, in at most 8 words> | <verdict> | <resolve, keep open, ask, or none> |
 ```
 
 When the assessor has stopped, renumber the findings in `risk.md` and `review.md` 1, 2, 3, … in the table's order,
-including each comment's footer, start each finding's bold claim with its number and impact, as
-`**#<n> · <impact>:** <claim>`, and put the review summary at the top of `review.md`. The same review summary goes
+including each comment's footer, start each finding with the line `**Finding <n> · Impact: <impact>**` above its
+claim, and put the review summary at the top of `review.md`. The same review summary goes
 to the user before they approve and at the top of the posted review body, so both read the same thing.
 
 ## Report and post
 
 Write `<run>/preview.html`: one page that shows what would be posted, in posting order, with the markdown rendered as
 GitHub would render it. It has a card for the review body, one card per inline comment headed by its number and
-`file:line`, and one card per thread reply headed by the thread's previous run ID and number. Render with `marked` from
-`cdn.jsdelivr.net`, follow the system's light or dark theme, and keep the page local: it holds the repo's code.
+`file:line`, and one card per thread reply headed by the thread's previous run ID and number. Render the exact text
+that would be posted, with `marked` from `cdn.jsdelivr.net` and its `breaks` option on, since GitHub turns newlines into
+line breaks. Follow the system's light or dark theme, and keep the page local: it holds the repo's code.
 
 Clean up, then reply to the user with these unnumbered sections, in this order:
 
@@ -294,6 +299,9 @@ the diff, so anchor such a finding at the changed line that causes it (e.g. the 
 body starts with the review summary. After it, under the heading `**Findings not on a code line:**`, come the findings
 no changed line causes, such as one about a commit, written as in `review.md` but without a footer of their own: the
 review body's footer covers them.
+
+GitHub renders every newline in a review as a line break, so post each paragraph as one line: join the wrapped lines of
+`review.md`, and keep the line breaks of code blocks, list items, tables and headings.
 
 The merge risk picks the event: `REQUEST_CHANGES` for `high`, `COMMENT` for `low` and `zero`. Every event posts the same
 comments; only `REQUEST_CHANGES` blocks the merge, until the user approves or dismisses it. On the user's own PR, where
