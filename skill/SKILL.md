@@ -287,8 +287,9 @@ Crucible posts without asking, so nothing waits for the user; a post is easy to 
 Write `<run>/preview.html`: one page that shows what is posted, in posting order, with the markdown rendered as GitHub
 renders it. It has a card for the review body, one card per inline comment headed by its number and `file:line`, and
 one card per thread reply headed by the thread's previous run ID and number. Render the exact text that is posted, with
-`marked` from `cdn.jsdelivr.net` and its `breaks` option on, since GitHub turns newlines into line breaks. Follow the
-system's light or dark theme, and keep the page local: it holds the repo's code.
+`marked` from `cdn.jsdelivr.net` and its `breaks` option on, since GitHub turns newlines into line breaks, and in
+GitHub's comment width and table layout, so a squeezed column shows. Follow the system's light or dark theme, and keep
+the page local: it holds the repo's code.
 
 Post one submitted GitHub review (never pending) with `commit_id` set to the reviewed SHA, where every comment is its
 own thread at its file:line. Before posting, check that the review holds every finding in `risk.md`: one comment for
