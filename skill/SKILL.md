@@ -109,6 +109,13 @@ with this message:
 > it, with `cat > <run>/threads/<comment id>.md <<'EOF'`. Stop every background command you started before you write
 > it.
 
+When the head is the previous head, nothing in the code changed, so skip the builds and the reviewers; the reviewer
+table says "no, head unchanged" for each. Decide a thread whose outcome the code alone settles without an agent: one the
+author resolved is `resolved without change`, and an unresolved one with no reply since the previous run is `open`.
+Write its `threads/<comment id>.md` yourself, with "head unchanged since crucible <previous run id>" as the evidence.
+Start the thread agent only for an unresolved thread with a new reply, since only the reply can change its verdict;
+it reads code and runs nothing. Then go on to Triage.
+
 ## Builds
 
 Every tree has its own build directory: `<run>/target/head` and `<run>/target/base`, and `<run>/<reviewer>/target` for
@@ -258,10 +265,14 @@ within an impact. On a resume, a second table follows:
 ```
 **Threads from crucible <previous run id>:**
 
-| Thread | Verdict | Action |
-| --- | --- | --- |
-| Finding <n>: <what it was about, in at most 8 words> | <verdict> | <resolve, keep open, ask, or none> |
+| Thread | Verdict | Author's reason | Action |
+| --- | --- | --- | --- |
+| Finding <n>: <what it was about, in at most 8 words> | <verdict> | <reason> | <resolve, keep open, ask, or none> |
 ```
+
+The author's reason is their last reply on the thread, in at most 10 words, quoted when short; "no reply" when they
+resolved or left it without writing anything, so a silent dismissal stands out; and "—" for a `fixed` thread. When a
+finding that sets the level was resolved without a reason, the rationale says so.
 
 When the assessor has stopped, renumber the findings in `risk.md` and `review.md` 1, 2, 3, … in the table's order,
 including each comment's footer, start each finding with the line `**Finding <n> · Impact: <impact>**` above its
