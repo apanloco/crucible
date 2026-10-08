@@ -158,10 +158,11 @@ As each reviewer with findings finishes, start a new agent with this message:
 
 > Try to disprove each finding in `<run>/<reviewer>/findings.md`, against the reviewer's definition of a finding in
 > `<reviewer file>`. Read `<run>/context.md` first. Your shell starts in the user's own checkout, which is not this PR:
-> work only under `<run>`, with absolute paths or `cd` in every command. Design and run your own check of each claim.
-> Then apply its fix alone to a clean head in your worktree, and rerun the check. A finding survives only if its fix
-> resolves it without breaking any rule in `<reviewer file>` or the repo rules, or any test. If a simpler fix also does,
-> use that instead. Judge a fix that changes only text by reading it. Save each tested fix with
+> work only under `<run>`, with absolute paths or `cd` in every command. Check each claim in the cheapest way that
+> settles it. Judge a fix whose whole effect you can see in the diff by reading it, without running code. Apply any
+> other fix alone to a clean head in your worktree, rerun the check, and run the narrowest tests that cover the code it
+> changes. A finding survives only if its fix resolves it without breaking any rule in `<reviewer file>` or the repo
+> rules, or a test. If a simpler fix also does, use that instead. Save each fix with
 > `git diff --no-ext-diff`, which bypasses any configured diff tool, as `<run>/<reviewer>/fix-<n>.diff`. `head/` and
 > `base/` are already built: run their binaries and existing tests with exactly the commands in `context.md`, and never
 > edit them. Run tests that write into the source tree, such as snapshot tests, in your own worktree instead. To change
@@ -169,8 +170,8 @@ As each reviewer with findings finishes, start a new agent with this message:
 > the check needs base, with its own build directory at `<run>/<reviewer>/target`. Delete that build directory as soon
 > as you are done, with `rm -rf` on its literal absolute path. Wait for a background command by its completion notice,
 > never by polling `pgrep -f`, which matches the polling command's own command line and never stops. You must write
-> the findings that survive, each with its fix and the evidence that settled it, with
-> `cat > <run>/<reviewer>/verified.md <<'EOF'`. Always write that file, with
+> the findings that survive, each with its fix, the evidence that settled it, and, for a fix you judged by reading,
+> why its whole effect is in the diff, with `cat > <run>/<reviewer>/verified.md <<'EOF'`. Always write that file, with
 > `None.` if nothing survives. Stop every background command you started before you write it.
 
 ## Triage
