@@ -248,18 +248,18 @@ it.
 
 **Findings of crucible <run id> on commit <short sha>:**
 
-| Risk | Finding | Reviewers |
-| --- | --- | --- |
-| <risk mark> | **<n>** <what goes wrong, in at most 10 words> | <reviewers> |
+| # | Risk | Finding | Reviewers |
+| --- | --- | --- | --- |
+| <n> | <risk mark> | <what goes wrong, in at most 8 words> | <reviewers> |
 
 Risk: 🔴 **high** can hurt users if merged · 🟡 **low** harms no one now but costs later · ⚪ **zero** polish only
 ```
 
-The risk mark is 🔴 for `high`, 🟡 for `low` and ⚪ for `zero`, alone in its cell, and the number opens the Finding
-cell: GitHub squeezes narrow columns beside a long one until it breaks words, and a single emoji cannot break. The
-number connects a row to its inline comment, whose footer carries the run ID and the same number. The inline comment
-carries the location, so the table has none; a finding in the review body names what it is about, such as
-"Commit message: …".
+The risk mark is 🔴 for `high`, 🟡 for `low` and ⚪ for `zero`, alone in its cell. GitHub squeezes narrow columns
+beside a long one until it breaks words, so the Finding text stays short enough for the table to fit, and a single
+emoji cannot break. The number connects a row to its inline comment, whose footer carries the run ID and the same
+number. The inline comment carries the location, so the table has none; a finding in the review body names what it
+is about, such as "Commit message: …".
 
 Findings are listed by risk, `high`, `low`, `zero`, and by number within a risk. On a resume, a second table follows:
 
