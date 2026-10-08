@@ -228,6 +228,13 @@ The merge risk is the highest risk of any finding, and of any thread that is `no
 A failing CI check makes it `high`. A runtime change with no finding is `low`, and a diff that changes no behaviour is
 `zero`. A changed path no test covers stays `low`, and the rationale names it.
 
+The merge risk only makes sense to someone who knows what the PR changes, and the user has not read it. So on a full
+review, "What it does" says in at most three sentences what merging changes for those who maintain the code: what
+users, scripts and servers observe differently, and what the code newly carries that someone must keep working, such as
+a flag, environment variable, dependency, contract or persisted format. It comes from the diff, not the PR description,
+which tells the author's intent, and says nothing of how the change is built. It judges nothing; the rationale does,
+without repeating it. A resume leaves it out, since the previous review already says it.
+
 The rationale and each bullet under it are at most two sentences; the detail belongs in the findings' comments. The
 rationale names only the findings and facts that set the level. When the level rests on something the run could
 not see, such as how a product outside the repo uses the changed path, it says so and what would settle it, such as
@@ -238,6 +245,8 @@ it.
 
 ```
 **Merge risk: <Level>**
+
+**What it does:** <What merging changes, as its maintainer sees it; on a full review only.>
 
 **Rationale:** <The findings, as "finding <n>", or facts that set the level.>
 
