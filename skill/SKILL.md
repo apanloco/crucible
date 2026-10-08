@@ -91,7 +91,8 @@ with this message:
 > `base/` are already built: run their binaries and existing tests with exactly the commands in `context.md`, and never
 > edit them. To change code, create your own worktree at `<run>/threads/<comment id>/worktree/` from head, with its own
 > build directory at `<run>/threads/<comment id>/target`, and delete that build directory as soon as you are done, with
-> `rm -rf` on its literal absolute path.
+> `rm -rf` on its literal absolute path. Wait for a background command by its completion notice, never by polling
+> `pgrep -f`, which matches the polling command's own command line and never stops.
 >
 > Give one verdict:
 >
@@ -166,8 +167,10 @@ As each reviewer with findings finishes, start a new agent with this message:
 > edit them. Run tests that write into the source tree, such as snapshot tests, in your own worktree instead. To change
 > code, such as adding a scratch test, create your own worktree at `<run>/<reviewer>/verify-worktree/`, from head unless
 > the check needs base, with its own build directory at `<run>/<reviewer>/target`. Delete that build directory as soon
-> as you are done, with `rm -rf` on its literal absolute path. You must write the findings that survive, each with its
-> fix and the evidence that settled it, with `cat > <run>/<reviewer>/verified.md <<'EOF'`. Always write that file, with
+> as you are done, with `rm -rf` on its literal absolute path. Wait for a background command by its completion notice,
+> never by polling `pgrep -f`, which matches the polling command's own command line and never stops. You must write
+> the findings that survive, each with its fix and the evidence that settled it, with
+> `cat > <run>/<reviewer>/verified.md <<'EOF'`. Always write that file, with
 > `None.` if nothing survives. Stop every background command you started before you write it.
 
 ## Triage
