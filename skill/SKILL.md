@@ -1,6 +1,6 @@
 ---
 name: crucible
-description: Focused reviewers examine a pull request in parallel, verifiers try to disprove each finding, and the survivors are posted as review comments with a merge risk once the user approves. Use for "/crucible 123" or "/crucible <PR URL>".
+description: Focused reviewers examine a pull request in parallel, verifiers try to disprove each finding, and the survivors are posted automatically as review comments with a merge risk, blocking the PR only when that risk is high. Use for "/crucible 123" or "/crucible <PR URL>".
 argument-hint: <PR number or URL>
 disable-model-invocation: true
 ---
@@ -188,7 +188,7 @@ action. The action follows the verdict:
 
 - `fixed` or `accepted`: reply and resolve.
 - `not fixed`: reply with the evidence and keep it open.
-- `disputed`: ask the user whether to resolve it, or reply with the objection and keep it open.
+- `disputed`: reply with the objection and keep it open.
 - `open` or `resolved without change`: nothing. The author decides what to fix; the merge risk counts what stays.
 
 End `review.md` with a merge brief: CI state, what nobody verified, and from `gh` other reviewers' open or dismissed
@@ -276,59 +276,63 @@ finding that sets the level was resolved without a reason, the rationale says so
 
 When the assessor has stopped, renumber the findings in `risk.md` and `review.md` 1, 2, 3, … in the table's order,
 including each comment's footer, start each finding with the line `**Finding <n> · Impact: <impact>**` above its
-claim, and put the review summary at the top of `review.md`. The same review summary goes
-to the user before they approve and at the top of the posted review body, so both read the same thing.
+claim, and put the review summary at the top of `review.md`. The same review summary goes at the top of the posted
+review body and in the reply to the user, so both read the same thing.
 
-## Report and post
+## Post
 
-Write `<run>/preview.html`: one page that shows what would be posted, in posting order, with the markdown rendered as
-GitHub would render it. It has a card for the review body, one card per inline comment headed by its number and
-`file:line`, and one card per thread reply headed by the thread's previous run ID and number. Render the exact text
-that would be posted, with `marked` from `cdn.jsdelivr.net` and its `breaks` option on, since GitHub turns newlines into
-line breaks. Follow the system's light or dark theme, and keep the page local: it holds the repo's code.
+Crucible posts without asking, so nothing waits for the user; a post is easy to revert instead.
 
-Clean up, then reply to the user with these unnumbered sections, in this order:
+Write `<run>/preview.html`: one page that shows what is posted, in posting order, with the markdown rendered as GitHub
+renders it. It has a card for the review body, one card per inline comment headed by its number and `file:line`, and
+one card per thread reply headed by the thread's previous run ID and number. Render the exact text that is posted, with
+`marked` from `cdn.jsdelivr.net` and its `breaks` option on, since GitHub turns newlines into line breaks. Follow the
+system's light or dark theme, and keep the page local: it holds the repo's code.
 
-- **PR:** its URL and title
-- **Run directory**
-- **Preview:** the path to `preview.html`.
-- **Nothing is posted yet.**
-- **Review summary:** `risk.md`, verbatim.
-- **Will be posted as <event> on <short sha>:** the merge risk that picked the event, how many comments, which findings
-  go in the review body, and on a resume each thread's action.
-- **Merge brief**
-- **Your call:** on a resume with `disputed` threads, each with the author's argument and the objection.
-- **Shall I post the findings?**, or on a resume **Shall I post the findings and settle the threads?**
+Post one submitted GitHub review (never pending) with `commit_id` set to the reviewed SHA, where every comment is its
+own thread at its file:line. If the PR head moved during the run, post nothing and tell the user to resume. GitHub
+rejects the whole review if a comment is on a line outside the diff, so anchor such a finding at the changed line that
+causes it (e.g. the new flag that needs docs).
 
-Write each section as a plain heading line, never as a list item; the terminal renders nested numbered lists with
-letters. Number only the findings, 1, 2, 3, …, and refer to findings only by those numbers.
-
-Post only after the user approves, as one submitted GitHub review (never pending) with `commit_id` set to the reviewed
-SHA, where every comment is its own thread at its file:line. If the PR head has moved since, or a CI check that was
-pending has failed, tell the user before posting. GitHub rejects the whole review if a comment is on a line outside
-the diff, so anchor such a finding at the changed line that causes it (e.g. the new flag that needs docs). The review
-body starts with the review summary. After it, under the heading `**Findings not on a code line:**`, come the findings
-no changed line causes, such as one about a commit, written as in `review.md` but without a footer of their own: the
-review body's footer covers them.
+The review body opens with `*Posted automatically by crucible for <user>, who has not read it yet.*`, then the review
+summary. After it, under the heading `**Findings not on a code line:**`, come the findings no changed line causes, such
+as one about a commit, written as in `review.md` but without a footer of their own: the review body's footer covers
+them. End the body with `*crucible <run id> · posted automatically*`, or on a resume with
+`*crucible <run id> · follows crucible <previous run id> · posted automatically*`; every comment and thread reply footer
+ends with ` · posted automatically` too.
 
 GitHub renders every newline in a review as a line break, so post each paragraph as one line: join the wrapped lines of
 `review.md`, and keep the line breaks of code blocks, list items, tables and headings.
 
 The merge risk picks the event: `REQUEST_CHANGES` for `high`, `COMMENT` for `low` and `zero`. Every event posts the same
-comments; only `REQUEST_CHANGES` blocks the merge, until the user approves or dismisses it. On the user's own PR, where
-GitHub forbids `REQUEST_CHANGES`, submit as `COMMENT`. A `COMMENT` does not lift an earlier `REQUEST_CHANGES`: when the
-user's newest review on the PR requested changes and the risk is not `high`, say in **Will be posted as** that it still
-blocks the PR, and ask whether to approve it after posting. With no findings and no open thread, ask whether to
-approve instead; on the user's own PR, post nothing. Never approve without the user saying so. End every review body,
-an approval's too, with `*crucible <run id>*`, or on a resume with
-`*crucible <run id> · follows crucible <previous run id>*`. On a resume, with the same approval and after posting the
-review, carry out each thread's action: post its reply with
-`gh api repos/<owner>/<repo>/pulls/<n>/comments/<comment id>/replies`, ending with `*crucible <run id>*`, then resolve
-it with the GraphQL `resolveReviewThread` mutation if its action says so.
+comments; only `REQUEST_CHANGES` blocks the merge. When it blocks, the body's second line is
+`*Blocked automatically: merge risk high. <user> lifts it by approving or dismissing this review.*` On the user's own
+PR, where GitHub forbids `REQUEST_CHANGES`, submit as `COMMENT`. Never approve on the user's behalf: a `COMMENT` does
+not lift an earlier `REQUEST_CHANGES`, so when the user's newest earlier review requested changes and the risk is not
+`high`, tell them it still blocks the PR and ask whether to approve. With no findings and no open thread, ask too.
+
+On a resume, after posting the review, carry out each thread's action: post its reply with
+`gh api repos/<owner>/<repo>/pulls/<n>/comments/<comment id>/replies`, then resolve it with the GraphQL
+`resolveReviewThread` mutation if its action says so.
 
 Record each posted comment's ID, its finding and its reviewer directory in `posted.md`, so a later follow-up can go from
 a thread back to its evidence. On a resume, also record each thread's verdict, reply ID and whether it was resolved.
-Then reply to the user with the review's URL and the review summary.
+
+Clean up, then reply to the user with these unnumbered sections, in this order:
+
+- **PR:** its URL and title
+- **Posted as <event> on <short sha>:** the review's URL, and when it blocked, how to lift it.
+- **Run directory** and **Preview:** the paths to the run directory and `preview.html`.
+- **Review summary:** `risk.md`, verbatim.
+- **Merge brief**
+- **Your call:** each `disputed` thread with the author's argument and the objection posted, and whether to approve
+  when an earlier block of the user's could be lifted.
+
+Write each section as a plain heading line, never as a list item; the terminal renders nested numbered lists with
+letters. Number only the findings, 1, 2, 3, …, and refer to findings only by those numbers.
+
+When the user asks to lift a block, dismiss that review with
+`gh api -X PUT repos/<owner>/<repo>/pulls/<n>/reviews/<review id>/dismissals`, with a message saying they lifted it.
 
 ## Cleanup
 
