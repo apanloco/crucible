@@ -310,10 +310,10 @@ head moved during the run, post nothing and tell the user to resume. GitHub reje
 a line outside the diff, so anchor such a finding at the changed line that causes it (e.g. the new flag that needs
 docs).
 
-The review body opens with `*Posted automatically by crucible for <user>, who has not read it yet.*`, then the review
-summary. After it, under the heading `**Findings not on a code line:**`, come the findings no changed line causes, such
-as one about a commit, written as in `review.md` but without a footer of their own: the review body's footer covers
-them. End the body with `*crucible <run id> · posted automatically*`, or on a resume with
+The review body opens with `*Written by crucible, run by <user>.*`, then the review summary. After it, under the
+heading `**Findings not on a code line:**`, come the findings no changed line causes, such as one about a commit,
+written as in `review.md` but without a footer of their own: the review body's footer covers them. End the body with
+`*crucible <run id> · posted automatically*`, or on a resume with
 `*crucible <run id> · follows crucible <previous run id> · posted automatically*`; every comment and thread reply footer
 ends with ` · posted automatically` too.
 
