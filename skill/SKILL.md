@@ -66,9 +66,9 @@ Crucible marks what it posts with a footer: a review body ends with `*crucible <
 each followed by ` · posted automatically`. Older footers have 7-character run IDs, `#<n>` for `finding <n>`, a
 `follows <run id>`, or no verdict; read them too. Before starting the reviewers, list the PR's review threads with
 `gh api graphql`. A previous thread is one that starts with a crucible finding comment, in a review the user posted,
-and is unresolved, or was resolved by someone other than the user, from `resolvedBy`, and does not end with a crucible
-reply whose verdict is `fixed` or `accepted`, since that reply settled it. A crucible thread in someone else's review is
-another reviewer's thread, for the merge brief.
+and is unresolved, or was resolved by someone other than the user, from `resolvedBy`. A resolved thread stops being one
+once a later crucible review body lists it as fixed, or once it ends with a crucible reply whose verdict is `fixed` or
+`accepted`. A crucible thread in someone else's review is another reviewer's thread, for the merge brief.
 
 Keep the previous threads out of the run directory until a reviewer has written its `findings.md`, so no reviewer reads
 them before its own search. Then write `<run>/<reviewer>/previous.md` with every previous thread whose footer names that
@@ -77,9 +77,10 @@ resolved. Continue that reviewer with SendMessage:
 
 > Your own review is done: never edit `findings.md` again. `<run>/<reviewer>/previous.md` holds review threads that
 > crucible posted on earlier runs of your reviewer. Settle each one at head, by reading, against the verdicts in the
-> Previous threads section of `<this file>`; a verifier checks each verdict next. You must write, for each thread, its
-> comment ID, whether your `findings.md` found it again, as `finding <n>`, or missed it, the verdict, the evidence that
-> settled it, and a reply of one or two sentences as the user would write it, with
+> Previous threads section of `<this file>`; a thread the author resolved is only ever `fixed` or
+> `resolved, still present`. A verifier checks each verdict next. You must write, for each thread, its comment ID, the
+> verdict, the evidence that settled it, a reply of one or two sentences as the user would write it, and, when the
+> scenario still fails, whether your `findings.md` found it again, as `finding <n>`, or missed it, with
 > `cat > <run>/<reviewer>/threads.md <<'EOF'`. Stop every background command you started before you write it.
 
 The verdicts:
@@ -90,11 +91,10 @@ The verdicts:
 - `accepted`: the author disagrees, every factual claim in their reply holds, and their reasoning is reasonable.
 - `disputed`: the author disagrees, and a claim in their reply is false or their reasoning does not hold.
 - `open`: the author has not replied and the scenario still fails at head.
-- `resolved without change`: the author resolved the thread, and the scenario still fails at head.
+- `resolved, still present`: the author resolved the thread, and the scenario still fails at head.
 
-A thread the author resolved is either `fixed`, whose reply keeps later runs from settling it again, or
-`resolved without change`, which gets no reply and comes back on every run. A thread none of whose reviewers started is
-`not checked`, and so is one whose reviewers' verdicts disagree; it gets no reply.
+A thread the author resolved is only ever `fixed` or `resolved, still present`, and gets no reply. A thread none of
+whose reviewers started is `not checked`, and so is one whose reviewers' verdicts disagree; it gets no reply.
 
 ## Builds
 
@@ -153,7 +153,8 @@ As each reviewer finishes, with findings or a `threads.md`, start a new agent wi
 > the findings that survive, each with its fix, the evidence that settled it, and, for a fix you judged by reading,
 > why its whole effect is in the diff, with `cat > <run>/<reviewer>/verified.md <<'EOF'`. Always write that file, with
 > `None.` if nothing survives. If `<run>/<reviewer>/threads.md` exists, also try to disprove each thread's verdict,
-> against the verdicts in the Previous threads section of `<this file>`, by running the thread's scenario at head where
+> against the verdicts in the Previous threads section of `<this file>`, where a thread the author resolved is only
+> ever `fixed` or `resolved, still present`, by running the thread's scenario at head where
 > reading does not settle it. You must write each verdict that holds, or the one that replaces it, with the evidence
 > and reply, with `cat > <run>/<reviewer>/threads-verified.md <<'EOF'`. Stop every background command you started
 > before you write it.
@@ -164,7 +165,8 @@ When every agent has stopped, not only written its file, check that every review
 reviewer with findings has a `verified.md`. Rerun a lane that is missing a file once; if it fails again, tell the user
 which reviewer is missing. Likewise, every reviewer with a `previous.md` must have a `threads.md` and a
 `threads-verified.md`. Then read every `*/verified.md` and `*/threads-verified.md` yourself and write `review.md`. Drop
-a finding that a `threads-verified.md` says found a previous thread again: that thread carries it. Several reviewers
+a finding with the same root cause as a previous thread, whichever reviewer settled it: that thread carries it. If that
+thread's verdict is `fixed`, keep the finding instead, and make the thread `not checked`. Several reviewers
 will often report the same problem in different words: merge findings with the same root cause into one, keeping the
 evidence from every reviewer. Write each comment as the user would: a one-line claim, then mechanism, scenario, fix. End
 each comment with the line `*crucible <run id> finding <n> · found by <reviewers>*`, where `<n>` is the finding's
@@ -175,10 +177,11 @@ instead.
 With previous threads, `review.md` starts with them: for each, its comment ID, run ID and finding, verdict, reply and
 action. The action follows the verdict:
 
-- `fixed` or `accepted`: reply, and resolve it unless it is resolved.
+- `fixed` on an unresolved thread, or `accepted`: reply and resolve.
+- `fixed` on a thread the author resolved: nothing.
 - `not fixed`: reply with the evidence and keep it open.
 - `disputed`: reply with the objection and keep it open.
-- `open`, `resolved without change` or `not checked`: nothing. The author decides what to fix; the merge risk counts
+- `open`, `resolved, still present` or `not checked`: nothing. The author decides what to fix; the merge risk counts
   what stays.
 
 End `review.md` with a merge brief: CI state, what nobody verified, including every `not checked` thread, and from
@@ -212,7 +215,7 @@ what merging it as it is can cost.
 - `zero`: merging costs nothing but polish: the code is right, and the fix only makes it simpler or clearer.
 
 The merge risk is the highest risk of any finding, and of any thread that is `not fixed`, `disputed`, `open`,
-`resolved without change` or `not checked`, so it says whether merging the PR as it is can hurt someone, and decides
+`resolved, still present` or `not checked`, so it says whether merging the PR as it is can hurt someone, and decides
 the review's event. A failing CI check makes it `high`. A runtime change with no finding is `low`, and a diff that
 changes no behaviour is `zero`. A changed path no test covers stays `low`, and the rationale names it.
 
@@ -259,20 +262,23 @@ number. The inline comment carries the location, so the table has none; a findin
 is about, such as "Commit message: …".
 
 Findings are listed by risk, `high`, `low`, `zero`, and by number within a risk. With previous threads, a second table
-follows:
+follows, with a row for every thread that is not `fixed`, and after it one line for the `fixed` ones:
 
 ```
 **Threads from earlier crucible runs:**
 
 | Thread | Outcome |
 | --- | --- |
-| Crucible <run id> finding <n>: <what it was about, in at most 8 words> | **<verdict>** · <resolve, keep open, or none> · author: <reason> |
+| Crucible <run id> finding <n>: <what it was about, in at most 8 words> | **<verdict>** · <its action> · author: <reason> |
+
+**Fixed since earlier runs:** crucible <run id> findings <n>, <n>–<n> · crucible <run id> findings <n>
 ```
 
-The author's reason is their last reply on the thread, in at most 10 words, quoted when short, or "no reply" when they
-resolved or left it without writing anything, so a silent dismissal stands out; a `fixed` thread leaves out the
-author part. When a
-finding that sets the level was resolved without a reason, the rationale says so.
+The action is the one `review.md` gives the thread, such as "reply and resolve" or "none". The author's reason is their
+last reply on the thread, in at most 10 words, quoted when short, or "no reply" when they resolved or left it without
+writing anything, so a silent dismissal stands out. When a finding that sets the level was resolved without a reason,
+the rationale says so. The fixed line is what tells later runs that those threads are settled, so it names every
+`fixed` thread, by run ID and finding number.
 
 When the assessor has stopped, renumber the findings in `risk.md` and `review.md` 1, 2, 3, … in the table's order,
 including each comment's footer, start each finding with the line `**Finding <n> · <risk mark> <risk>**` above its
