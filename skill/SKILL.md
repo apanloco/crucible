@@ -55,67 +55,46 @@ doubt whether a contract is touched, clone it. Never read a local checkout of a 
 in `context.md` each cloned consumer, its contract as the repo rules state it, and its path, so agents can read how a
 changed contract is used.
 
-## Resume
+## Previous threads
 
-A run resumes the PR's newest crucible review, if there is one. Crucible marks what it posts with a footer: a review
-body ends with `*crucible <run id>*` or `*crucible <run id> · follows crucible <previous run id>*`, a finding comment
-with `*crucible <run id> finding <n> · found by <reviewers>*`, and a thread reply with `*crucible <run id>*`. Older
-footers have 7-character run IDs, `#<n>` for `finding <n>`, and no "crucible" after "follows"; read them too. List
-the PR's reviews and review threads with `gh api graphql`. If no review body has a crucible footer, this is a full
-review: skip the rest of this section.
+Every run is a full review, even of an unchanged head: a reviewer seldom finds everything at once, so earlier runs must
+not narrow or steer the search. They count only through their threads, which each reviewer settles after its own
+search.
 
-Otherwise the newest crucible review gives the previous run ID and, as its `commit_id`, the previous head. The previous
-run's files are in `~/.cache/crucible/*-<previous run id>/`. If that directory is missing, tell the user which run ID
-was not found and stop. Fetch the previous head with
-`git fetch origin <sha>`; its merge base is `git merge-base <previous head> <base ref>`. Save the change since then as
-`delta.diff`: `git diff --no-ext-diff <previous head> <head>` if the merge base is unchanged, otherwise
-`git range-diff <previous merge base>..<previous head> <merge base>..<head>`, so a rebase onto the base branch does not
-count as change.
+Crucible marks what it posts with a footer: a review body ends with `*crucible <run id>*`, a finding comment with
+`*crucible <run id> finding <n> · found by <reviewers>*`, and a thread reply with `*crucible <run id> · <verdict>*`,
+each followed by ` · posted automatically`. Older footers have 7-character run IDs, `#<n>` for `finding <n>`, a
+`follows <run id>`, or no verdict; read them too. Before starting the reviewers, list the PR's review threads with
+`gh api graphql`. A previous thread is one that starts with a crucible finding comment, in a review the user posted,
+and is unresolved, or was resolved by someone other than the user, from `resolvedBy`, and does not end with a crucible
+reply whose verdict is `fixed` or `accepted`, since that reply settled it. A crucible thread in someone else's review is
+another reviewer's thread, for the merge brief.
 
-Add to `context.md` the previous run ID, head and directory, the path to `delta.diff`, and every unresolved crucible
-thread: its comment ID, finding, location, full text and every reply. Add too every crucible thread that the previous
-run posted or left open and that someone other than the user has since resolved, from `resolvedBy` in `gh api
-graphql`, marked as resolved by the author. Add the known findings too: every finding in the
-previous run's `review.md`, posted or not, and the previous run's own known findings.
+Keep the previous threads out of the run directory until a reviewer has written its `findings.md`, so no reviewer reads
+them before its own search. Then write `<run>/<reviewer>/previous.md` with every previous thread whose footer names that
+reviewer: its comment ID, run ID and finding number, location, full text, every reply, and whether and by whom it was
+resolved. Continue that reviewer with SendMessage:
 
-On a resume, a reviewer with `scope: commits` in its front matter is judged on, and reviews, every commit from merge
-base to head as on a first run, and its message adds "Report none of the known findings in `context.md`". Every other
-reviewer is judged on `delta.diff` alone, and its message says "Report only issues `<run>/delta.diff` introduces, and
-none of the known findings in `context.md`" instead of "Report only issues this diff introduces". When the reviewers
-start, also start one agent per crucible thread in `context.md`, unresolved or resolved by the author, in parallel,
-with this message:
+> Your own review is done: never edit `findings.md` again. `<run>/<reviewer>/previous.md` holds review threads that
+> crucible posted on earlier runs of your reviewer. Settle each one at head, by reading, against the verdicts in the
+> Previous threads section of `<this file>`; a verifier checks each verdict next. You must write, for each thread, its
+> comment ID, whether your `findings.md` found it again, as `finding <n>`, or missed it, the verdict, the evidence that
+> settled it, and a reply of one or two sentences as the user would write it, with
+> `cat > <run>/<reviewer>/threads.md <<'EOF'`. Stop every background command you started before you write it.
 
-> You settle one review thread on PR <n>, comment <comment id> in `<run>/context.md`. Read `<run>/context.md` first,
-> and the finding's evidence in `<previous run>/<reviewer>/`. Your shell starts in the user's own
-> checkout, which is not this PR: work only under `<run>`, with absolute paths or `cd` in every command. `head/` and
-> `base/` are already built: run their binaries and existing tests with exactly the commands in `context.md`, and never
-> edit them. To change code, create your own worktree at `<run>/threads/<comment id>/worktree/` from head, with its own
-> build directory at `<run>/threads/<comment id>/target`, and delete that build directory as soon as you are done, with
-> `rm -rf` on its literal absolute path. Wait for a background command by its completion notice, never by polling
-> `pgrep -f`, which matches the polling command's own command line and never stops.
->
-> Give one verdict:
->
-> - `fixed`: the finding's scenario no longer fails at head, and the fix is reasonable.
-> - `not fixed`: the author says it is fixed, or the code changed, but the scenario still fails or the fix is not
->   reasonable.
-> - `accepted`: the author disagrees, every factual claim in their reply holds, and their reasoning is reasonable.
-> - `disputed`: the author disagrees, and a claim in their reply is false or their reasoning does not hold.
-> - `open`: the author has not replied and nothing the finding is about changed.
-> - `resolved without change`: the author resolved the thread, and the scenario still fails at head.
->
-> A thread the author resolved is either `fixed` or `resolved without change`, and gets no reply.
->
-> You must write the verdict, the evidence that settled it, and a reply of one or two sentences as the user would write
-> it, with `cat > <run>/threads/<comment id>.md <<'EOF'`. Stop every background command you started before you write
-> it.
+The verdicts:
 
-When the head is the previous head, nothing in the code changed, so skip the builds and the reviewers; the reviewer
-table says "no, head unchanged" for each. Decide a thread whose outcome the code alone settles without an agent: one the
-author resolved is `resolved without change`, and an unresolved one with no reply since the previous run is `open`.
-Write its `threads/<comment id>.md` yourself, with "head unchanged since crucible <previous run id>" as the evidence.
-Start the thread agent only for an unresolved thread with a new reply, since only the reply can change its verdict;
-it reads code and runs nothing. Then go on to Triage.
+- `fixed`: the finding's scenario no longer fails at head, and the fix is reasonable.
+- `not fixed`: the author says it is fixed, or the code changed, but the scenario still fails or the fix is not
+  reasonable.
+- `accepted`: the author disagrees, every factual claim in their reply holds, and their reasoning is reasonable.
+- `disputed`: the author disagrees, and a claim in their reply is false or their reasoning does not hold.
+- `open`: the author has not replied and the scenario still fails at head.
+- `resolved without change`: the author resolved the thread, and the scenario still fails at head.
+
+A thread the author resolved is either `fixed`, whose reply keeps later runs from settling it again, or
+`resolved without change`, which gets no reply and comes back on every run. A thread none of whose reviewers started is
+`not checked`, and so is one whose reviewers' verdicts disagree; it gets no reply.
 
 ## Builds
 
@@ -154,7 +133,7 @@ agent per started reviewer, in parallel, with this message:
 
 ## Verify
 
-As each reviewer with findings finishes, start a new agent with this message:
+As each reviewer finishes, with findings or a `threads.md`, start a new agent with this message:
 
 > Try to disprove each finding in `<run>/<reviewer>/findings.md`, against the reviewer's definition of a finding in
 > `<reviewer file>`. Read `<run>/context.md` first. Your shell starts in the user's own checkout, which is not this PR:
@@ -173,32 +152,39 @@ As each reviewer with findings finishes, start a new agent with this message:
 > never by polling `pgrep -f`, which matches the polling command's own command line and never stops. You must write
 > the findings that survive, each with its fix, the evidence that settled it, and, for a fix you judged by reading,
 > why its whole effect is in the diff, with `cat > <run>/<reviewer>/verified.md <<'EOF'`. Always write that file, with
-> `None.` if nothing survives. Stop every background command you started before you write it.
+> `None.` if nothing survives. If `<run>/<reviewer>/threads.md` exists, also try to disprove each thread's verdict,
+> against the verdicts in the Previous threads section of `<this file>`, by running the thread's scenario at head where
+> reading does not settle it. You must write each verdict that holds, or the one that replaces it, with the evidence
+> and reply, with `cat > <run>/<reviewer>/threads-verified.md <<'EOF'`. Stop every background command you started
+> before you write it.
 
 ## Triage
 
 When every agent has stopped, not only written its file, check that every reviewer has a `findings.md` and every
 reviewer with findings has a `verified.md`. Rerun a lane that is missing a file once; if it fails again, tell the user
-which reviewer is missing. On a resume, also check that every unresolved crucible thread has a
-`threads/<comment id>.md`, and rerun a missing one once. Then read every `*/verified.md` yourself and write
-`review.md`. Several reviewers will often report the same problem in different words: merge findings with the same root
-cause into one, keeping the evidence from every reviewer. Write each comment as the user would: a one-line claim,
-then mechanism, scenario, fix. End each comment with the line `*crucible <run id> finding <n> · found by <reviewers>*`,
-where `<n>` is the finding's number. Write a commit as the word "commit" and its plain SHA, never in backticks, so
-GitHub links it and no one takes it for a run ID. Never put `#` before a finding's number: GitHub links `#<n>` to issue
-or PR `<n>`. Write "finding <n>" instead.
+which reviewer is missing. Likewise, every reviewer with a `previous.md` must have a `threads.md` and a
+`threads-verified.md`. Then read every `*/verified.md` and `*/threads-verified.md` yourself and write `review.md`. Drop
+a finding that a `threads-verified.md` says found a previous thread again: that thread carries it. Several reviewers
+will often report the same problem in different words: merge findings with the same root cause into one, keeping the
+evidence from every reviewer. Write each comment as the user would: a one-line claim, then mechanism, scenario, fix. End
+each comment with the line `*crucible <run id> finding <n> · found by <reviewers>*`, where `<n>` is the finding's
+number. Write a commit as the word "commit" and its plain SHA, never in backticks, so GitHub links it and no one takes
+it for a run ID. Never put `#` before a finding's number: GitHub links `#<n>` to issue or PR `<n>`. Write "finding <n>"
+instead.
 
-On a resume, `review.md` starts with the threads: for each, its comment ID, previous finding, verdict, reply and
+With previous threads, `review.md` starts with them: for each, its comment ID, run ID and finding, verdict, reply and
 action. The action follows the verdict:
 
-- `fixed` or `accepted`: reply and resolve.
+- `fixed` or `accepted`: reply, and resolve it unless it is resolved.
 - `not fixed`: reply with the evidence and keep it open.
 - `disputed`: reply with the objection and keep it open.
-- `open` or `resolved without change`: nothing. The author decides what to fix; the merge risk counts what stays.
+- `open`, `resolved without change` or `not checked`: nothing. The author decides what to fix; the merge risk counts
+  what stays.
 
-End `review.md` with a merge brief: CI state, what nobody verified, and from `gh` other reviewers' open or dismissed
-threads and commits after the last approval. A check counts as not verified only if neither the run nor CI ran it; a
-check that CI runs and passes on the reviewed head is verified, even if no agent ran it.
+End `review.md` with a merge brief: CI state, what nobody verified, including every `not checked` thread, and from
+`gh` other reviewers' open or dismissed threads and commits after the last approval. A check counts as not verified
+only if neither the run nor CI ran it; a check that CI runs and passes on the reviewed head is verified, even if no
+agent ran it.
 
 ## Review summary
 
@@ -206,12 +192,12 @@ Whoever decides to merge reads the risk first and the findings second, so every 
 can judge in a minute. When `review.md` is written, start one agent with this message:
 
 > Assess the risk of merging PR <n> at the reviewed head, following the Review summary section of `<this file>`. Read
-> `<run>/context.md`, `<run>/sessions.md`, `<run>/review.md`, every `<run>/*/verified.md` and, on a resume, every
-> `<run>/threads/*.md`, and read the consumers in `context.md` to see whether real users reach a changed path. Your
-> shell starts in the user's own checkout, which is not this PR: work only under `<run>`,
-> with absolute paths or `cd` in every command. `head/` and `base/` are shared and read-only: read code there only to
-> place a finding, and report no new findings. You must write the assessment with
-> `cat > <run>/risk.md <<'EOF'`. Stop every background command you started before you write it.
+> `<run>/context.md`, `<run>/sessions.md`, `<run>/review.md`, every `<run>/*/verified.md` and
+> `<run>/*/threads-verified.md`, and read the consumers in `context.md` to see whether real users reach a changed path.
+> Your shell starts in the user's own checkout, which is not this PR: work only under `<run>`, with absolute paths or
+> `cd` in every command. `head/` and `base/` are shared and read-only: read code there only to place a finding, and
+> report no new findings. You must write the assessment with `cat > <run>/risk.md <<'EOF'`. Stop every background
+> command you started before you write it.
 
 The assessor judges only what the run established: the verified findings, the thread verdicts, CI, and what no
 reviewer covered. It takes each finding's reviewers from its footer in `review.md`, and gives each finding a risk:
@@ -225,30 +211,30 @@ what merging it as it is can cost.
   only on a path no user reaches.
 - `zero`: merging costs nothing but polish: the code is right, and the fix only makes it simpler or clearer.
 
-The merge risk is the highest risk of any finding, and of any thread that is `not fixed`, `disputed` or
-`resolved without change`, so it says whether merging the PR as it is can hurt someone, and decides the review's event.
-A failing CI check makes it `high`. A runtime change with no finding is `low`, and a diff that changes no behaviour is
-`zero`. A changed path no test covers stays `low`, and the rationale names it.
+The merge risk is the highest risk of any finding, and of any thread that is `not fixed`, `disputed`, `open`,
+`resolved without change` or `not checked`, so it says whether merging the PR as it is can hurt someone, and decides
+the review's event. A failing CI check makes it `high`. A runtime change with no finding is `low`, and a diff that
+changes no behaviour is `zero`. A changed path no test covers stays `low`, and the rationale names it.
 
-The merge risk only makes sense to someone who knows what the PR changes, and the user has not read it. So on a full
-review, "What it does" says in at most three sentences what merging changes for those who maintain the code: what
-users, scripts and servers observe differently, and what the code newly carries that someone must keep working, such as
-a flag, environment variable, dependency, contract or persisted format. It comes from the diff, not the PR description,
-which tells the author's intent, and says nothing of how the change is built. It judges nothing; the rationale does,
-without repeating it. A resume leaves it out, since the previous review already says it.
+The merge risk only makes sense to someone who knows what the PR changes, and the user has not read it. So "What it
+does" says in at most three sentences what merging changes for those who maintain the code: what users, scripts and
+servers observe differently, and what the code newly carries that someone must keep working, such as a flag, environment
+variable, dependency, contract or persisted format. It comes from the diff, not the PR description, which tells the
+author's intent, and says nothing of how the change is built. It judges nothing; the rationale does, without repeating
+it.
 
 The rationale and each bullet under it are at most two sentences; the detail belongs in the findings' comments. The
 rationale names only the findings and facts that set the level. When the level rests on something the run could
-not see, such as how a product outside the repo uses the changed path, it says so and what would settle it, such as
-"high if the editor calls `reconfigure`; ask the author". A pending CI check sets no level, and the merge brief reports
-it.
+not see, such as how a product outside the repo uses the changed path or a `not checked` thread, it says so and what
+would settle it, such as "high if the editor calls `reconfigure`; ask the author". A pending CI check sets no level,
+and the merge brief reports it.
 
 `risk.md` holds exactly this, the review summary, with nothing before or after it:
 
 ```
 **Merge risk: <Level>**
 
-**What it does:** <What merging changes, as its maintainer sees it; on a full review only.>
+**What it does:** <What merging changes, as its maintainer sees it.>
 
 **Rationale:** <The findings, as "finding <n>", or facts that set the level.>
 
@@ -272,14 +258,15 @@ emoji cannot break. The number connects a row to its inline comment, whose foote
 number. The inline comment carries the location, so the table has none; a finding in the review body names what it
 is about, such as "Commit message: …".
 
-Findings are listed by risk, `high`, `low`, `zero`, and by number within a risk. On a resume, a second table follows:
+Findings are listed by risk, `high`, `low`, `zero`, and by number within a risk. With previous threads, a second table
+follows:
 
 ```
-**Threads from crucible <previous run id>:**
+**Threads from earlier crucible runs:**
 
 | Thread | Outcome |
 | --- | --- |
-| Finding <n>: <what it was about, in at most 8 words> | **<verdict>** · <resolve, keep open, or none> · author: <reason> |
+| Crucible <run id> finding <n>: <what it was about, in at most 8 words> | **<verdict>** · <resolve, keep open, or none> · author: <reason> |
 ```
 
 The author's reason is their last reply on the thread, in at most 10 words, quoted when short, or "no reply" when they
@@ -306,15 +293,14 @@ the page local: it holds the repo's code.
 Post one submitted GitHub review (never pending) with `commit_id` set to the reviewed SHA, where every comment is its
 own thread at its file:line. Before posting, check that the review holds every finding in `risk.md`: one comment for
 each finding on a code line, and the rest in the body; if one is missing, fix the review before posting it. If the PR
-head moved during the run, post nothing and tell the user to resume. GitHub rejects the whole review if a comment is on
-a line outside the diff, so anchor such a finding at the changed line that causes it (e.g. the new flag that needs
-docs).
+head moved during the run, post nothing and tell the user to run crucible again. GitHub rejects the whole review if a
+comment is on a line outside the diff, so anchor such a finding at the changed line that causes it (e.g. the new flag
+that needs docs).
 
 The review body opens with `*Written by crucible, run by <user>.*`, then the review summary. After it, under the
 heading `**Findings not on a code line:**`, come the findings no changed line causes, such as one about a commit,
 written as in `review.md` but without a footer of their own: the review body's footer covers them. End the body with
-`*crucible <run id> · posted automatically*`, or on a resume with
-`*crucible <run id> · follows crucible <previous run id> · posted automatically*`; every comment and thread reply footer
+`*crucible <run id> · posted automatically*`; every comment and thread reply footer
 ends with ` · posted automatically` too.
 
 GitHub renders every newline in a review as a line break, so post each paragraph as one line: join the wrapped lines of
@@ -327,12 +313,12 @@ PR, where GitHub forbids `REQUEST_CHANGES`, submit as `COMMENT`. Never approve o
 not lift an earlier `REQUEST_CHANGES`, so when the user's newest earlier review requested changes and the risk is not
 `high`, tell them it still blocks the PR and ask whether to approve. With no findings and no open thread, ask too.
 
-On a resume, after posting the review, carry out each thread's action: post its reply with
+After posting the review, carry out each previous thread's action: post its reply with
 `gh api repos/<owner>/<repo>/pulls/<n>/comments/<comment id>/replies`, then resolve it with the GraphQL
 `resolveReviewThread` mutation if its action says so.
 
 Record each posted comment's ID, its finding and its reviewer directory in `posted.md`, so a later follow-up can go from
-a thread back to its evidence. On a resume, also record each thread's verdict, reply ID and whether it was resolved.
+a thread back to its evidence. Also record each previous thread's verdict, reply ID and whether it was resolved.
 
 Clean up, then reply to the user with these unnumbered sections, in this order:
 

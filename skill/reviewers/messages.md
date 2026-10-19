@@ -1,6 +1,5 @@
 ---
 enabled: true
-scope: commits
 ---
 
 Readers of `git log`, `git blame` and `git bisect` rely on commit messages to know what changed and why without reading
