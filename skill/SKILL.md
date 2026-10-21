@@ -66,9 +66,10 @@ Crucible marks what it posts with a footer: a review body ends with `*crucible <
 each followed by ` · posted automatically`. Older footers have 7-character run IDs, `#<n>` for `finding <n>`, a
 `follows <run id>`, or no verdict; read them too. Before starting the reviewers, list the PR's review threads with
 `gh api graphql`. A previous thread is one that starts with a crucible finding comment, in a review the user posted,
-and is unresolved, or was resolved by someone other than the user, from `resolvedBy`. A resolved thread stops being one
-once a later crucible review body lists it as fixed, or once it ends with a crucible reply whose verdict is `fixed` or
-`accepted`. A crucible thread in someone else's review is another reviewer's thread, for the merge brief.
+and is unresolved, or was resolved, from `resolvedBy`, by the PR's author or by someone other than the user: on their
+own PR, the user resolving a thread is the author resolving it. A resolved thread stops being one once a later crucible
+review body lists it as fixed, or once it ends with a crucible reply whose verdict is `fixed` or `accepted`. A crucible
+thread in someone else's review is another reviewer's thread, for the merge brief.
 
 Keep the previous threads out of the run directory until a reviewer has written its `findings.md`, so no reviewer reads
 them before its own search. Then write `<run>/<reviewer>/previous.md` with every previous thread whose footer names that
