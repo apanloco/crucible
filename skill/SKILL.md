@@ -169,10 +169,13 @@ which reviewer is missing. Likewise, every reviewer with a `previous.md` must ha
 a finding with the same root cause as a previous thread, whichever reviewer settled it: that thread carries it. If that
 thread's verdict is `fixed`, keep the finding instead, and make the thread `not checked`. Several reviewers
 will often report the same problem in different words: merge findings with the same root cause into one, keeping the
-evidence from every reviewer. Write each comment as the user would: a one-line claim, then mechanism, scenario, fix. End
-each comment with the line `*crucible <run id> finding <n> · found by <reviewers>*`, where `<n>` is the finding's
-number. Write a commit as the word "commit" and its plain SHA, never in backticks, so GitHub links it and no one takes
-it for a run ID. Never put `#` before a finding's number: GitHub links `#<n>` to issue or PR `<n>`. Write "finding <n>"
+evidence from every reviewer. Then compare each finding with every crucible finding comment on the PR from earlier
+runs, resolved or not. A finding whose fix undoes what an earlier finding asked for, such as restoring code it had
+removed or calling redundant code it had added, survives only if its evidence shows the earlier finding was wrong; its
+comment then names that finding as `crucible <run id> finding <n>` and says why. Write each comment as the user would:
+a one-line claim, then mechanism, scenario, fix. End each comment with the line
+`*crucible <run id> finding <n> · found by <reviewers>*`, where `<n>` is the finding's number. Write a commit as the
+word "commit" and its plain SHA, never in backticks, so GitHub links it and no one takes it for a run ID. Never put `#` before a finding's number: GitHub links `#<n>` to issue or PR `<n>`. Write "finding <n>"
 instead.
 
 With previous threads, `review.md` starts with them: for each, its comment ID, run ID and finding, verdict, reply and
