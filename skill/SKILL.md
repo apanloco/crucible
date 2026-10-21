@@ -175,8 +175,8 @@ removed or calling redundant code it had added, survives only if its evidence sh
 comment then names that finding as `crucible <run id> finding <n>` and says why. Write each comment as the user would:
 a one-line claim, then mechanism, scenario, fix. End each comment with the line
 `*crucible <run id> finding <n> · found by <reviewers>*`, where `<n>` is the finding's number. Write a commit as the
-word "commit" and its plain SHA, never in backticks, so GitHub links it and no one takes it for a run ID. Never put `#` before a finding's number: GitHub links `#<n>` to issue or PR `<n>`. Write "finding <n>"
-instead.
+word "commit" and its plain SHA, never in backticks, so GitHub links it and no one takes it for a run ID. Never put
+`#` before a finding's number: GitHub links `#<n>` to issue or PR `<n>`. Write "finding <n>" instead.
 
 With previous threads, `review.md` starts with them: for each, its comment ID, run ID and finding, verdict, reply and
 action. The action follows the verdict:
