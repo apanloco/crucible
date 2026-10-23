@@ -112,7 +112,8 @@ binaries.
 
 Every file in `reviewers/` next to this one with `enabled: true` in its front matter is a reviewer. A reviewer with
 `start-only-if` in its front matter starts only if the diff and its commit list, read alone and not with the PR
-description, clearly meet that condition; when in doubt, skip it. A reviewer without one always starts.
+description, clearly meet that condition; when in doubt, skip it. A condition on `context.md` is met by what it lists.
+A reviewer without one always starts.
 
 Before starting any reviewer, you must print this table in your reply to the user, and add it to `sessions.md`:
 

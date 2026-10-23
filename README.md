@@ -28,7 +28,7 @@ Crucible reads `AGENTS.md` or `CLAUDE.md` on the base branch:
   crucible stops.
 - **Rules:** conventions the `repo-rules` reviewer checks and every fix must keep.
 - **Consumers (optional):** other repos that use this one, and what their contract is. When a diff touches a contract,
-  crucible clones that consumer, so agents can read how it is used and the merge risk weighs it.
+  crucible clones that consumer, so the `consumers` reviewer checks how it is used and the merge risk weighs it.
 
 ## Layout
 
