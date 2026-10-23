@@ -33,4 +33,5 @@ Crucible reads `AGENTS.md` or `CLAUDE.md` on the base branch:
 ## Layout
 
 - `skill/SKILL.md`: the orchestration, from setup to posting.
-- `skill/reviewers/`: one file per reviewer, each with the condition for starting it.
+- `skill/reviewers/`: one file per reviewer, each with the condition for starting it. A reviewer opens with why it
+  exists, then what it reviews, then what a finding is.

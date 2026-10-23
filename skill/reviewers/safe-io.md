@@ -3,6 +3,9 @@ enabled: true
 start-only-if: the diff adds or changes code that reads or writes files, or talks to the network
 ---
 
+A crash, a full disk or a dead server mid-operation should fail cleanly: no corrupt file, no lost error, no hung
+process.
+
 Review every file and network operation the diff adds or changes.
 
 A finding is:
