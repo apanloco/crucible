@@ -61,7 +61,7 @@ Search wide
 ===
 
 * 16 reviewers, each with a few rules: correctness, tests, docs, yagni, …
-* A reviewer starts only if the diff touches its area
+* The orchestrator starts a reviewer only if the diff clearly meets its condition, and shows why for each in a table
 * Reviewers never see each other's work; findings are merged by root cause afterwards
 * Every run is a full review: earlier threads are shown only after a reviewer's own search, then settled
 
