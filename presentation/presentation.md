@@ -36,9 +36,9 @@ PR ── build ──────┼─ reviewer ── verifier ─┼── m
   head and base   └─ reviewer ── verifier ─┘
 ```
 
-* The orchestrator only starts agents: it never reviews, and never retells a finding
-* Agents hand work over in files, so a verifier reads the reviewer's own words, not a summary of them
-* The orchestrator forms no opinion of the code, so it has none to pass on when it triages
+* The orchestrator stays neutral: it only starts agents, never reviews, never relays a finding
+  * So when it triages, it has formed no opinion of its own
+  * And a verifier reads the reviewer's own words from a file, not a retelling
 
 <!-- end_slide -->
 
