@@ -34,5 +34,3 @@ Crucible reads `AGENTS.md` or `CLAUDE.md` on the base branch:
 
 - `skill/SKILL.md`: the orchestration, from setup to posting.
 - `skill/reviewers/`: one file per reviewer, each with the condition for starting it.
-- `presentation/`: a [presenterm](https://github.com/mfontanini/presenterm) deck on how crucible works, and the
-  research behind it.
