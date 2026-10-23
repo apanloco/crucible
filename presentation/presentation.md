@@ -57,7 +57,7 @@ The repo tells crucible what matters
 
 <!-- end_slide -->
 
-Search wide
+Specialized reviewers
 ===
 
 * 16 reviewers, each with a few rules: correctness, tests, docs, yagni, …
@@ -70,6 +70,10 @@ Search wide
 * Instruction following degrades as the number of instructions grows, across 10 models
   * ManyIFEval, EMNLP 2025 <https://arxiv.org/abs/2509.21051>
   * General instruction following, not code review
+* At Bosch, two-person teams with one perspective each found more defects, at lower cost per defect, than teams
+  with a checklist
+  * Laitenberger, El Emam & Harbich, IEEE TSE 2001 <https://doi.org/10.1109/32.922713>
+  * 60 professional developers reviewing code, so human attention, not models
 
 <!-- end_slide -->
 
