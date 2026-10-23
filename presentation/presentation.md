@@ -70,10 +70,6 @@ Search wide
 * Instruction following degrades as the number of instructions grows, across 10 models
   * ManyIFEval, EMNLP 2025 <https://arxiv.org/abs/2509.21051>
   * General instruction following, not code review
-* Merging independent review runs: F1 15% → 22%, recall more than doubled
-  * SWR-Bench, FSE 2026 <https://arxiv.org/abs/2509.01494>
-  * Repeated runs of one model and prompt, not specialists
-  * More recall means more noise, so the next slide matters
 
 <!-- end_slide -->
 
