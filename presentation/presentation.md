@@ -1,16 +1,28 @@
 ---
 title: Crucible
-sub_title: Code review where every finding has to survive a check
+sub_title: Finds more. Proves all of it.
 ---
 
-Why
+One pass sees a slice
 ===
 
-* AI code review is noisy: many comments, few worth acting on
-* 12 of 13 code review agents had an average signal ratio below 60%
-  * Chowdhury et al., MSR 2026 <https://arxiv.org/abs/2604.03196>
-  * Observational, on GitHub PRs: it shows the noise, not its cause
-* Crucible's bet: post less, and only what survived a check
+* AI review finds a fraction of the issues, and a different fraction every run
+
+## Research
+
+* 8 frontier models found 15–31% of the issues human reviewers flagged
+  * SWE-PRBench, 2026 <https://arxiv.org/abs/2603.26130>
+  * Single-author preprint
+* Five runs of the same model overlapped on only 27 identified issues
+  * SWR-Bench, FSE 2026 <https://arxiv.org/abs/2509.01494>
+
+## Experience
+
+* Fix what a reviewer found, rerun it, and new findings appear
+
+## Crucible
+
+* Search wide, then verify everything it found
 
 <!-- end_slide -->
 
@@ -49,16 +61,17 @@ The repo tells crucible what matters
   * A blog post about their own trained reviewer, with no numbers in the text
 * All 8 models got worse as more context was pasted into the prompt
   * SWE-PRBench, 2026 <https://arxiv.org/abs/2603.26130>
-  * Single-author preprint; why crucible gives agents clones to browse, not pasted context
+  * Why crucible gives agents clones to browse, not pasted context
 
 <!-- end_slide -->
 
-Many small, independent reviewers
+Search wide
 ===
 
 * 16 reviewers, each with a few rules: correctness, tests, docs, yagni, …
 * A reviewer starts only if the diff touches its area
 * Reviewers never see each other's work; findings are merged by root cause afterwards
+* Every run is a full review: earlier threads are shown only after a reviewer's own search, then settled
 
 ## Research
 
@@ -72,7 +85,7 @@ Many small, independent reviewers
 
 <!-- end_slide -->
 
-A finding has to survive a check
+Then prove it
 ===
 
 * A reviewer must give a concrete scenario and a fix, not "the logic is wrong"
@@ -87,20 +100,6 @@ A finding has to survive a check
 * Ten reviewer agents unanimously endorsed an OpenSSL vulnerability that did not exist; one test rejected it
   * Agarwal, Refute-or-Promote, 2026 <https://arxiv.org/abs/2604.19049>
   * Single-author preprint, and one example, not a rate
-
-<!-- end_slide -->
-
-Earlier threads
-===
-
-* Every run is a full review, even of an unchanged PR
-* A reviewer sees crucible's earlier threads only after its own search
-* It then settles each one: fixed, not fixed, accepted, disputed, open
-* A verifier checks each verdict before anything is replied or resolved
-
-## Research
-
-* None: a design choice to keep earlier runs from anchoring the search
 
 <!-- end_slide -->
 
@@ -130,4 +129,4 @@ What the research does not back (yet)
   * Model mistakes grow more similar as models grow more capable
   * Goel et al., 2025 <https://arxiv.org/abs/2502.04313>
   * Running checks instead of agreeing is crucible's answer, but untested
-* Crucible itself has no evaluation yet
+* No head-to-head comparison of crucible with other AI reviewers yet
