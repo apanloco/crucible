@@ -55,15 +55,6 @@ The repo tells crucible what matters
 * When the diff touches a contract, crucible clones that consumer, so findings and the merge risk are checked against
   real use
 
-## Research
-
-* Repository access and execution: "catching more critical issues and raising fewer false alarms"
-  * OpenAI, 2025 <https://alignment.openai.com/scaling-code-verification/>
-  * A blog post about their own trained reviewer, with no numbers in the text
-* All 8 models got worse as more context was pasted into the prompt
-  * SWE-PRBench, 2026 <https://arxiv.org/abs/2603.26130>
-  * Why crucible gives agents clones to browse, not pasted context
-
 <!-- end_slide -->
 
 Search wide
